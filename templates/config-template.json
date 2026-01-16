@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "Default URL to screenshot",
+      "default": "http://localhost:8000"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Default reference image path",
+      "default": ".claude/figma-refs/design.png"
+    },
+    "referenceDir": {
+      "type": "string",
+      "description": "Directory containing Figma reference images",
+      "default": ".claude/figma-refs"
+    },
+    "viewports": {
+      "type": "object",
+      "properties": {
+        "desktop": { "type": "string", "default": "1920x1080" },
+        "tablet": { "type": "string", "default": "768x1024" },
+        "mobile": { "type": "string", "default": "375x667" }
+      }
+    },
+    "tolerance": {
+      "type": "string",
+      "enum": ["strict", "normal", "relaxed"],
+      "default": "normal"
+    },
+    "waitTime": {
+      "type": "integer",
+      "description": "Wait time in ms after page load",
+      "default": 2000
+    },
+    "waitForSelector": {
+      "type": ["string", "null"],
+      "description": "CSS selector to wait for before screenshot",
+      "default": null
+    },
+    "figma": {
+      "type": "object",
+      "properties": {
+        "fileId": { "type": ["string", "null"] },
+        "token": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

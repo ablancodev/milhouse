@@ -1,0 +1,37 @@
+{
+  "name": "milhouse",
+  "version": "1.1.0",
+  "description": "Visual QA plugin that compares implementation screenshots against Figma designs using Claude Vision",
+  "author": "Claude Plugins Team",
+  "commands": [
+    {
+      "name": "check",
+      "description": "Compare current implementation against Figma reference"
+    },
+    {
+      "name": "compare",
+      "description": "Compare two screenshots (without Figma designs)"
+    },
+    {
+      "name": "configure",
+      "description": "Configure Milhouse settings (URLs, viewports, tolerances)"
+    },
+    {
+      "name": "export-figma",
+      "description": "Export Figma frames as reference images"
+    },
+    {
+      "name": "help",
+      "description": "Show Milhouse documentation"
+    }
+  ],
+  "hooks": [],
+  "dependencies": {
+    "node": ">=18.0.0",
+    "packages": ["puppeteer", "sharp"]
+  },
+  "configuration": {
+    "file": ".claude/milhouse.config.json",
+    "schema": "$schema/milhouse-config.json"
+  }
+}

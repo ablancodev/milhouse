@@ -1,0 +1,37 @@
+{
+  "name": "milhouse-plugin",
+  "version": "1.1.0",
+  "description": "Visual QA plugin for Claude Code that compares implementation screenshots against Figma designs using Claude Vision",
+  "main": "scripts/compare-vision.js",
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "visual-qa",
+    "figma",
+    "screenshot",
+    "testing",
+    "claude-vision"
+  ],
+  "author": "Claude Plugins Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "sharp": "^0.33.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/milhouse-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/anthropics/claude-code/issues"
+  },
+  "homepage": "https://github.com/your-org/milhouse-plugin#readme"
+}
