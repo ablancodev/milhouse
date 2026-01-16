@@ -2,18 +2,37 @@
 
 Get started with Milhouse in 5 minutes.
 
-## 1. Quick Install
+## Command Locations Overview
+
+**In TERMINAL (outside Claude Code):**
+- Install dependencies: `npm install`
+- Set environment variables: `export ANTHROPIC_API_KEY=...`
+- View reports: `cat .claude/milhouse-feedback.md`
+
+**In CLAUDE CODE:**
+- All `/milhouse:*` commands
+- All `/ralph-loop` commands
+- Configuration and validation
+
+---
+
+## 1. Quick Install (in TERMINAL, outside Claude Code)
 
 ```bash
 # Navigate to plugin directory
 cd /path/to/milhouse
 
-# Run setup
-bash scripts/setup.sh
+# Install Node dependencies (Puppeteer + Sharp, ~300MB)
+npm install
 
-# Configure API key
+# Configure API key (add to ~/.zshrc or ~/.bashrc for persistence)
 export ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Optional: For Figma API
+export FIGMA_ACCESS_TOKEN=figd_your-token
 ```
+
+**Note:** This installs Puppeteer locally with Chromium (~300MB download).
 
 ## 2. Add Design Reference
 
@@ -30,13 +49,13 @@ export FIGMA_ACCESS_TOKEN=figd_your-token
 /milhouse:export-figma --frame "Home Desktop"
 ```
 
-## 3. Configure Project
+## 3. Configure Project (in CLAUDE CODE)
 
 ```bash
 /milhouse:configure --url http://localhost:8000 --reference .claude/figma-refs/design.png
 ```
 
-## 4. First Validation
+## 4. First Validation (in CLAUDE CODE)
 
 ```bash
 # Make sure your server is running
@@ -44,12 +63,18 @@ export FIGMA_ACCESS_TOKEN=figd_your-token
 /milhouse:check
 ```
 
-## 5. Review Results
+## 5. Review Results (TERMINAL or editor)
 
 ```bash
-# View the report
+# View the report (in terminal)
 cat .claude/milhouse-feedback.md
 
+# Or open in your editor
+```
+
+## 6. Fix with Ralph (in CLAUDE CODE)
+
+```bash
 # If there are differences, pass to Ralph
 /ralph-loop "Read .claude/milhouse-feedback.md and fix differences" --max-iterations 10
 ```

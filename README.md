@@ -51,47 +51,64 @@ Milhouse closes the visual feedback loop in your development workflow:
 - Claude Code installed
 - Anthropic API Key
 
-### Setup
+### Setup (Commands in TERMINAL, outside Claude Code)
+
+These commands install dependencies including Puppeteer (~300MB with Chromium):
 
 ```bash
-# Navigate to plugin directory
+# 1. Navigate to plugin directory
 cd /path/to/milhouse
 
-# Run setup script
-bash scripts/setup.sh
+# 2. Install Node dependencies (Puppeteer + Sharp)
+npm install
+# This downloads ~300MB including Chromium browser
 
-# Configure environment variables
+# Alternative: Use setup script (does the same)
+# bash scripts/setup.sh
+
+# 3. Configure environment variables (add to ~/.zshrc or ~/.bashrc for persistence)
 export ANTHROPIC_API_KEY=sk-ant-your-key-here
 
-# Optional: For Figma API integration
+# 4. Optional: For Figma API integration
 export FIGMA_ACCESS_TOKEN=figd_your-token-here
 ```
 
-### Verify Installation
+### Verify Installation (In Claude Code)
 
 ```bash
-# In Claude Code
+# Inside Claude Code, run:
 /milhouse:help
 ```
+
+**Note:** The plugin runs Puppeteer locally from `node_modules/` in the plugin directory. Each installation downloads Chromium (~300MB).
 
 ## Quick Start
 
 ### 5-Minute Workflow
 
+**Step 1: Setup (in TERMINAL, once per machine)**
 ```bash
-# 1. Configure your project
+cd /path/to/milhouse
+npm install
+export ANTHROPIC_API_KEY=sk-ant-your-key
+```
+
+**Step 2: Add reference image (manual)**
+- Export design from Figma as PNG @2x
+- Save to `.claude/figma-refs/design.png`
+
+**Step 3: Use in Claude Code**
+```bash
+# Configure your project
 /milhouse:configure --url http://localhost:8000
 
-# 2. Add a Figma reference (or use any PNG/JPG)
-#    Export from Figma and save to .claude/figma-refs/design.png
-
-# 3. Run visual validation
+# Run visual validation
 /milhouse:check --reference .claude/figma-refs/design.png
 
-# 4. Review feedback
+# Review feedback (in terminal or editor)
 cat .claude/milhouse-feedback.md
 
-# 5. If there are differences, pass to Ralph
+# If there are differences, pass to Ralph
 /ralph-loop "Read .claude/milhouse-feedback.md and fix all differences" --max-iterations 10
 ```
 
