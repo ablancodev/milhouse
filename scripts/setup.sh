@@ -29,16 +29,9 @@ echo ""
 echo "Installing dependencies..."
 npm install puppeteer sharp
 
-# Verificar variables de entorno
+# Verificar variables de entorno (optional)
 echo ""
-echo "Checking environment variables..."
-
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo "⚠️  ANTHROPIC_API_KEY not set"
-    echo "   Set it with: export ANTHROPIC_API_KEY=your-key"
-else
-    echo "✓ ANTHROPIC_API_KEY is set"
-fi
+echo "Checking optional environment variables..."
 
 if [ -z "$FIGMA_ACCESS_TOKEN" ]; then
     echo "⚠️  FIGMA_ACCESS_TOKEN not set (optional, for Figma API export)"
@@ -47,6 +40,10 @@ if [ -z "$FIGMA_ACCESS_TOKEN" ]; then
 else
     echo "✓ FIGMA_ACCESS_TOKEN is set"
 fi
+
+echo ""
+echo "ℹ️  Note: No API keys needed for image analysis!"
+echo "   Claude Code analyzes images using its built-in vision capabilities."
 
 # Crear config por defecto si no existe
 if [ ! -f ".claude/milhouse.config.json" ]; then

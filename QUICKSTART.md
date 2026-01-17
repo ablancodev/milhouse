@@ -6,13 +6,14 @@ Get started with Milhouse in 5 minutes.
 
 **In TERMINAL (outside Claude Code):**
 - Install dependencies: `npm install`
-- Set environment variables: `export ANTHROPIC_API_KEY=...`
+- (Optional) Set Figma token: `export FIGMA_ACCESS_TOKEN=...`
 - View reports: `cat .claude/milhouse-feedback.md`
 
 **In CLAUDE CODE:**
 - All `/milhouse:*` commands
 - All `/ralph-loop` commands
 - Configuration and validation
+- **Image analysis happens here** - Claude Code reads and analyzes images directly
 
 ---
 
@@ -24,15 +25,16 @@ cd /path/to/milhouse
 
 # Install Node dependencies (Puppeteer + Sharp, ~300MB)
 npm install
+# That's it! No API keys needed.
 
-# Configure API key (add to ~/.zshrc or ~/.bashrc for persistence)
-export ANTHROPIC_API_KEY=sk-ant-your-key-here
-
-# Optional: For Figma API
+# Optional: For Figma API integration
 export FIGMA_ACCESS_TOKEN=figd_your-token
+# Add to ~/.zshrc or ~/.bashrc for persistence
 ```
 
-**Note:** This installs Puppeteer locally with Chromium (~300MB download).
+**Note:**
+- This installs Puppeteer locally with Chromium (~300MB download)
+- **No Anthropic API key needed** - Claude Code analyzes images using its built-in vision
 
 ## 2. Add Design Reference
 
@@ -86,8 +88,7 @@ cat .claude/milhouse-feedback.md
 /lisa "Build a landing page with hero, features, and CTA"
 # Output: detailed-spec.md
 
-# 2. Setup Milhouse
-export ANTHROPIC_API_KEY=sk-ant-...
+# 2. Setup Milhouse (assumes npm install already done)
 /milhouse:configure --url http://localhost:3000
 
 # 3. Add Figma reference
@@ -162,11 +163,6 @@ cp .claude/milhouse-screenshot.png .claude/screenshots/golden/v1.0.png
 5. **Viewports:** Validate desktop first, then mobile/tablet
 
 ## Troubleshooting
-
-**"ANTHROPIC_API_KEY not set"**
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-```
 
 **"Screenshot failed"**
 - Verify server is running: `curl http://localhost:8000`

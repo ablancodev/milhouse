@@ -105,12 +105,11 @@ La configuración se guarda en `.claude/milhouse.config.json`:
 
 ## Variables de entorno
 
-Para Figma API, configura:
+**No API keys needed for image analysis!** Claude Code has built-in vision capabilities.
+
+For Figma API export (optional):
 ```bash
 export FIGMA_ACCESS_TOKEN=your-token-here
 ```
 
-Para Claude Vision, configura:
-```bash
-export ANTHROPIC_API_KEY=your-key-here
-```
+Alternatively, export Figma frames manually to `.claude/figma-refs/`

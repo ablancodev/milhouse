@@ -90,8 +90,11 @@ Muestra esta ayuda.
 
 1. **Setup inicial:**
    ```bash
+   # In TERMINAL: Install dependencies
+   npm install
+
+   # In CLAUDE CODE: Configure project
    /milhouse:configure
-   # Configura ANTHROPIC_API_KEY en tu entorno
    ```
 
 2. **Preparar referencias:**
@@ -126,14 +129,15 @@ Muestra esta ayuda.
 - `.claude/milhouse-screenshot.png` - Último screenshot capturado
 - `.claude/milhouse.config.json` - Configuración del proyecto
 
-## Variables de entorno requeridas
+## Variables de entorno
+
+**No API keys needed for image analysis!** Claude Code has built-in vision capabilities.
 
 ```bash
-# Requerido para comparación visual
-export ANTHROPIC_API_KEY=sk-ant-...
-
-# Opcional para export de Figma
+# Optional: Only for Figma API export (/milhouse:export-figma)
 export FIGMA_ACCESS_TOKEN=figd_...
+
+# Or export Figma frames manually to .claude/figma-refs/
 ```
 
 ## Integración con Ralph Loop

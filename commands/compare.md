@@ -14,174 +14,240 @@ arguments:
   - name: selector
     description: CSS selector to capture specific element (default: full page)
     required: false
-  - name: output
-    description: Output format - markdown, json, or both (default: markdown)
-    required: false
 ---
 
 # Milhouse Screenshot Comparison
 
-Compara dos screenshots directamente, sin necesidad de tener diseños en Figma.
+Compares two screenshots directly, without needing Figma designs, using Claude Vision (built into Claude Code).
 
-**Casos de uso:**
-- Comparar versión actual vs. versión anterior (regression testing)
-- Comparar implementación vs. mockup estático
-- Comparar diferentes branches o entornos
-- QA visual sin acceso a Figma
+**Use cases:**
+- Regression testing (compare with previous version)
+- Branch comparison (compare different branches)
+- Environment comparison (staging vs production)
+- Mockup validation (compare with static design files)
 
-## Proceso
+## Process
 
-1. Lee configuración de `.claude/milhouse.config.json` si existe
-2. Si `current` es una URL, captura screenshot con Puppeteer
-3. Si `current` es un path, usa la imagen directamente
-4. Carga la imagen de referencia desde `reference`
-5. Envía ambas imágenes a Claude Vision API con prompt de comparación screenshot-a-screenshot
-6. Genera reporte de diferencias en `.claude/milhouse-feedback.md`
+1. If `current` is a URL, capture screenshot with Puppeteer
+2. If `current` is a path, use the image directly
+3. Load reference screenshot from `reference` path
+4. **Claude Code analyzes both images directly**
+5. Generate detailed differences report
 
-## Ejecución
+## Execution
 
 ```bash
+FINAL_VIEWPORT="${viewport:-1920x1080}"
+FINAL_SELECTOR="${selector:-}"
+
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Determinar si current es URL o archivo
+# Determine if current is URL or file
 if [[ "$current" =~ ^https?:// ]]; then
-  # Es una URL, capturar screenshot
-  node "$SCRIPT_DIR/scripts/compare-vision.js" \
-    --url "$current" \
-    --reference "$reference" \
-    --viewport "${viewport:-1920x1080}" \
-    --selector "${selector:-}" \
-    --type screenshot \
-    --output "${output:-markdown}"
+  # It's a URL, capture screenshot
+  echo "📸 Capturing screenshot from $current..."
+  if [ -n "$FINAL_SELECTOR" ]; then
+    node "$SCRIPT_DIR/scripts/screenshot.js" \
+      --url "$current" \
+      --output ".claude/milhouse-screenshot.png" \
+      --viewport "$FINAL_VIEWPORT" \
+      --selector "$FINAL_SELECTOR"
+  else
+    node "$SCRIPT_DIR/scripts/screenshot.js" \
+      --url "$current" \
+      --output ".claude/milhouse-screenshot.png" \
+      --viewport "$FINAL_VIEWPORT"
+  fi
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Screenshot capture failed"
+    exit 1
+  fi
+
+  CURRENT_IMAGE=".claude/milhouse-screenshot.png"
+  echo "✓ Screenshot captured: $CURRENT_IMAGE"
 else
-  # Es un archivo, comparar directamente
-  node "$SCRIPT_DIR/scripts/compare-vision.js" \
-    --screenshot "$current" \
-    --reference "$reference" \
-    --type screenshot \
-    --output "${output:-markdown}"
+  # It's a file path
+  CURRENT_IMAGE="$current"
+  echo "📄 Using existing screenshot: $CURRENT_IMAGE"
+
+  if [ ! -f "$CURRENT_IMAGE" ]; then
+    echo "❌ Current screenshot not found: $CURRENT_IMAGE"
+    exit 1
+  fi
 fi
+
+# Verify reference exists
+if [ ! -f "$reference" ]; then
+  echo "❌ Reference screenshot not found: $reference"
+  exit 1
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔍 MILHOUSE SCREENSHOT COMPARISON"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Current: $CURRENT_IMAGE"
+echo "Reference: $reference"
+echo ""
+echo "I will now analyze both screenshots and generate a detailed comparison report."
+echo ""
 ```
 
-## Ejemplos de uso
+## Instructions for Claude
 
-### Comparar URL actual vs screenshot anterior
+After the screenshots are ready, you should:
+
+1. **Read both images:**
+   - Current implementation: Path from `$CURRENT_IMAGE`
+   - Reference: Path from `$reference`
+
+2. **Analyze for differences:**
+   - Compare every visual aspect between the two screenshots
+   - Identify ALL visual changes (spacing, colors, typography, sizes, alignment, borders, shadows)
+   - Be VERY SPECIFIC with values (exact px, hex colors)
+   - Ignore expected differences in dynamic content (dates, user names, etc.)
+   - Focus on structural and styling differences
+
+3. **Generate structured report** and save to `.claude/milhouse-feedback.md`:
+
+```markdown
+# Milhouse Screenshot Comparison Report
+
+**Generated:** [timestamp]
+**Status:** APPROVED | DIFFERENCES_FOUND
+**Summary:** [one-line summary]
+**Comparison Type:** Screenshot vs Screenshot
+
+---
+
+[If APPROVED:]
+## ✅ APPROVED
+
+The screenshots are visually identical (or differences are insignificant).
+
+### Verified elements:
+- ✓ [element 1]
+- ✓ [element 2]
+...
+
+[If DIFFERENCES_FOUND:]
+## ❌ DIFFERENCES FOUND
+
+Found [N] visual difference(s) between screenshots.
+
+### 🔴 Critical (N)
+
+**1. [Element Name]** (category)
+- **Issue:** [clear description of the change]
+- **Current:** `[value in current screenshot]`
+- **Reference:** `[value in reference screenshot]`
+- **CSS Property:** `[property]`
+- **Suggested Fix:**
+  ```css
+  [selector] {
+    [property]: [value];
+  }
+  ```
+
+### 🟠 Major (N)
+[same format]
+
+### 🟡 Minor (N)
+[same format]
+
+---
+
+## 📋 Summary for Ralph
+
+```
+[If differences are unintended regressions:]
+Visual regression detected. Fix the following differences to match the reference:
+
+- [Element]: [Description]. Change [property] from "[current]" to "[reference]"
+- [Element]: [Description]. Change [property] from "[current]" to "[reference]"
+...
+
+After corrections, output <promise>REGRESSION_FIXED</promise>
+
+[If differences are intentional changes:]
+The following visual changes were detected (review if intentional):
+
+- [Element]: [Description]
+- [Element]: [Description]
+...
+```
+
+### ✅ Unchanged elements:
+- [element 1]
+- [element 2]
+...
+```
+
+4. **Also save JSON data** to `.claude/milhouse-feedback.json`:
+
+```json
+{
+  "status": "APPROVED" | "DIFFERENCES_FOUND",
+  "comparisonType": "screenshot",
+  "summary": "...",
+  "differences": [
+    {
+      "element": "...",
+      "category": "spacing|color|typography|size|alignment|border|shadow|other",
+      "description": "...",
+      "current": "...",
+      "reference": "...",
+      "severity": "critical|major|minor",
+      "cssProperty": "...",
+      "suggestedFix": "..."
+    }
+  ],
+  "approvedElements": [...]
+}
+```
+
+5. **Display summary:**
+   - If APPROVED: "🎉 Screenshots match! No visual differences detected."
+   - If differences: "⚠️ Found [N] visual differences. Review .claude/milhouse-feedback.md"
+
+## Categories for differences:
+
+- **spacing** - margins, paddings, gaps
+- **color** - background, text, border colors
+- **typography** - font-size, font-weight, font-family, line-height, letter-spacing
+- **size** - width, height, dimensions
+- **alignment** - text-align, justify-content, align-items
+- **border** - border-width, border-radius, border-style
+- **shadow** - box-shadow, text-shadow
+- **other** - any other visual difference
+
+## Severity levels:
+
+- **critical** - Major changes that significantly alter the UI
+- **major** - Noticeable changes that affect visual consistency
+- **minor** - Small changes that are barely noticeable
+
+## Usage Examples
+
+### Regression Testing
 ```bash
-/milhouse:compare \
-  --current http://localhost:8000 \
-  --reference .claude/screenshots/previous-version.png
+/milhouse:compare --current http://localhost:8000 --reference .claude/screenshots/golden/v1.0.png
 ```
 
-### Comparar dos screenshots existentes
+### Branch Comparison
 ```bash
-/milhouse:compare \
-  --current .claude/screenshots/branch-feature.png \
-  --reference .claude/screenshots/main-branch.png
+/milhouse:compare --current .claude/screenshots/feature.png --reference .claude/screenshots/main.png
 ```
 
-### Comparar versión mobile
+### Environment Comparison
 ```bash
-/milhouse:compare \
-  --current http://localhost:8000 \
-  --reference .claude/screenshots/approved-mobile.png \
-  --viewport 375x667
+/milhouse:compare --current https://staging.app.com --reference .claude/screenshots/production.png
 ```
 
-### Comparar solo un componente
+### Component-Specific Comparison
 ```bash
-/milhouse:compare \
-  --current http://localhost:8000 \
-  --reference .claude/screenshots/hero-approved.png \
-  --selector ".hero-section"
-```
-
-## Flujo de trabajo recomendado
-
-### 1. Regression Testing
-```bash
-# Capturar screenshot "golden" de la versión aprobada
-/milhouse:check --url http://localhost:8000
-# Guardar como referencia
-cp .claude/milhouse-screenshot.png .claude/screenshots/golden-v1.0.png
-
-# Después de hacer cambios, comparar
-/milhouse:compare \
-  --current http://localhost:8000 \
-  --reference .claude/screenshots/golden-v1.0.png
-```
-
-### 2. Branch Comparison
-```bash
-# En branch main
-git checkout main
-npm run dev
-# Capturar screenshot
-/milhouse:check --url http://localhost:3000
-cp .claude/milhouse-screenshot.png .claude/screenshots/main.png
-
-# En branch feature
-git checkout feature/new-design
-npm run dev
-# Comparar
-/milhouse:compare \
-  --current http://localhost:3000 \
-  --reference .claude/screenshots/main.png
-```
-
-### 3. Environment Comparison
-```bash
-# Comparar staging vs production
-/milhouse:compare \
-  --current https://staging.myapp.com \
-  --reference .claude/screenshots/production-baseline.png
-```
-
-## Diferencias con /milhouse:check
-
-| Feature | /milhouse:check | /milhouse:compare |
-|---------|-----------------|-------------------|
-| **Propósito** | Comparar contra diseño de Figma | Comparar screenshots entre sí |
-| **Referencia** | Export de Figma (diseño) | Screenshot anterior (implementación) |
-| **Prompt** | Enfocado en diseño vs implementación | Enfocado en diferencias visuales genéricas |
-| **Uso típico** | Validar fidelidad al diseño | Regression testing, branch comparison |
-
-## Output
-
-Después de ejecutar, revisa `.claude/milhouse-feedback.md` para ver las diferencias encontradas.
-
-Si los screenshots coinciden, el archivo indicará `STATUS: APPROVED`.
-
-Si hay diferencias, contendrá una lista de cambios visuales detectados.
-
-## Tips
-
-1. **Golden screenshots:** Mantén screenshots "dorados" de versiones aprobadas en `.claude/screenshots/golden/`
-2. **Nombrado:** Usa nombres descriptivos: `v1.0-home-desktop.png`, `main-branch-hero.png`
-3. **Viewports:** Captura y compara cada viewport por separado
-4. **Componentes:** Usa `--selector` para comparar componentes específicos
-5. **Automatización:** Puedes integrar esto en CI/CD para detectar cambios visuales no intencionales
-
-## Integración con Ralph
-
-```bash
-# Si hay diferencias no esperadas
-/ralph-loop "Lee .claude/milhouse-feedback.md. Estas son diferencias visuales no intencionales introducidas por el último cambio. Revierte o corrige lo necesario para que la implementación sea idéntica a la referencia." --max-iterations 10
-```
-
-## Almacenamiento de referencias
-
-Organiza tus screenshots de referencia:
-
-```
-.claude/screenshots/
-├── golden/                    # Versiones aprobadas "golden"
-│   ├── v1.0-home-desktop.png
-│   ├── v1.0-home-mobile.png
-│   └── v1.0-dashboard.png
-├── branches/                  # Screenshots de branches
-│   ├── main-home.png
-│   └── feature-new-ui.png
-└── environments/              # Screenshots de diferentes entornos
-    ├── production-home.png
-    └── staging-home.png
+/milhouse:compare --current http://localhost:8000 --reference .claude/screenshots/hero-approved.png --selector ".hero-section"
 ```

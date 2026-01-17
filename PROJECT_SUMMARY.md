@@ -2,18 +2,18 @@
 
 ## Overview
 
-**Milhouse** es un plugin completo de Visual QA para Claude Code que compara screenshots de implementaciones web contra diseños de Figma usando Claude Vision API.
+**Milhouse** is a complete Visual QA plugin for Claude Code that compares web implementation screenshots against Figma designs using Claude Code's built-in vision capabilities.
 
-**Filosofía:** "Milhouse validates. Ralph iterates."
+**Philosophy:** "Milhouse validates. Ralph iterates."
 
 ## Project Statistics
 
-- **Total Files:** 21
+- **Total Files:** 22+
 - **Total Lines:** ~2000+ (code + documentation)
-- **Scripts:** 4 (3 JavaScript + 1 Bash)
-- **Commands:** 4 slash commands
-- **Documentation:** 5 comprehensive docs
-- **Version:** 1.0.0
+- **Scripts:** 5 (4 JavaScript + 2 Bash)
+- **Commands:** 5 slash commands
+- **Documentation:** 6+ comprehensive docs
+- **Version:** 1.2.0
 
 ## Complete File Structure
 
@@ -127,23 +127,25 @@ LISA (spec) → RALPH (code) → MILHOUSE (visual QA)
 
 ## Environment Variables
 
-**Required:**
-```bash
-ANTHROPIC_API_KEY=sk-ant-...  # For Claude Vision
-```
+**No API keys required for image analysis!** Claude Code uses built-in vision capabilities.
 
 **Optional:**
 ```bash
-FIGMA_ACCESS_TOKEN=figd_...   # For Figma API
+FIGMA_ACCESS_TOKEN=figd_...   # Only for Figma API export
 ```
 
 ## Installation
 
 ```bash
+# In TERMINAL (outside Claude Code):
 cd /path/to/milhouse
+npm install
+
+# Or use setup script:
 bash scripts/setup.sh
-export ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+**Note:** No ANTHROPIC_API_KEY needed - Claude Code analyzes images directly!
 
 ## Usage Example
 
@@ -171,14 +173,15 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 - [ ] Install plugin in Claude Code
 - [ ] Run `/milhouse:help` - verify command shows
-- [ ] Run `bash scripts/setup.sh` - verify dependencies install
-- [ ] Set `ANTHROPIC_API_KEY` environment variable
+- [ ] In TERMINAL: Run `npm install` in plugin directory
 - [ ] Create test project with local server (e.g., http://localhost:8000)
 - [ ] Export Figma frame manually to `.claude/figma-refs/test.png`
-- [ ] Run `/milhouse:check --url http://localhost:8000 --reference .claude/figma-refs/test.png`
+- [ ] In CLAUDE CODE: Run `/milhouse:check --url http://localhost:8000 --reference .claude/figma-refs/test.png`
+- [ ] Verify Claude Code analyzes both images directly
 - [ ] Verify `.claude/milhouse-feedback.md` is generated
 - [ ] Verify feedback format matches spec
 - [ ] Test with Ralph Loop integration
+- [ ] Test `/milhouse:compare` for regression testing
 
 ## Future Enhancements
 

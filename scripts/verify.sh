@@ -79,18 +79,12 @@ echo "   ✓ Scripts are executable"
 # Verificar variables de entorno
 echo ""
 echo "5. Checking environment variables..."
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo "   ❌ ANTHROPIC_API_KEY not set (required)"
-    echo "      Set with: export ANTHROPIC_API_KEY=sk-ant-..."
-    ERRORS=$((ERRORS + 1))
-else
-    echo "   ✓ ANTHROPIC_API_KEY is set"
-fi
+echo "   ℹ️  No ANTHROPIC_API_KEY needed - Claude Code has built-in vision!"
 
 if [ -z "$FIGMA_ACCESS_TOKEN" ]; then
-    echo "   ⚠️  FIGMA_ACCESS_TOKEN not set (optional)"
+    echo "   ⚠️  FIGMA_ACCESS_TOKEN not set (optional, for Figma API export)"
     echo "      Set with: export FIGMA_ACCESS_TOKEN=figd_..."
-    echo "      Or export frames manually from Figma"
+    echo "      Or export frames manually from Figma to .claude/figma-refs/"
     WARNINGS=$((WARNINGS + 1))
 else
     echo "   ✓ FIGMA_ACCESS_TOKEN is set"

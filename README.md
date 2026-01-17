@@ -49,7 +49,6 @@ Milhouse closes the visual feedback loop in your development workflow:
 
 - Node.js >= 18.0.0
 - Claude Code installed
-- Anthropic API Key
 
 ### Setup (Commands in TERMINAL, outside Claude Code)
 
@@ -66,11 +65,9 @@ npm install
 # Alternative: Use setup script (does the same)
 # bash scripts/setup.sh
 
-# 3. Configure environment variables (add to ~/.zshrc or ~/.bashrc for persistence)
-export ANTHROPIC_API_KEY=sk-ant-your-key-here
-
-# 4. Optional: For Figma API integration
+# 3. (Optional) For Figma API integration
 export FIGMA_ACCESS_TOKEN=figd_your-token-here
+# Add to ~/.zshrc or ~/.bashrc for persistence
 ```
 
 ### Verify Installation (In Claude Code)
@@ -80,7 +77,10 @@ export FIGMA_ACCESS_TOKEN=figd_your-token-here
 /milhouse:help
 ```
 
-**Note:** The plugin runs Puppeteer locally from `node_modules/` in the plugin directory. Each installation downloads Chromium (~300MB).
+**Note:**
+- The plugin runs Puppeteer locally from `node_modules/` in the plugin directory
+- **No Anthropic API key needed** - Claude Code analyzes images directly using its built-in vision capabilities
+- Each installation downloads Chromium (~300MB)
 
 ## Quick Start
 
@@ -90,7 +90,7 @@ export FIGMA_ACCESS_TOKEN=figd_your-token-here
 ```bash
 cd /path/to/milhouse
 npm install
-export ANTHROPIC_API_KEY=sk-ant-your-key
+# That's it! No API keys needed.
 ```
 
 **Step 2: Add reference image (manual)**
@@ -102,15 +102,18 @@ export ANTHROPIC_API_KEY=sk-ant-your-key
 # Configure your project
 /milhouse:configure --url http://localhost:8000
 
-# Run visual validation
+# Run visual validation (Claude Code analyzes the images)
 /milhouse:check --reference .claude/figma-refs/design.png
 
-# Review feedback (in terminal or editor)
+# Claude will read both images and generate a detailed report
+# Review the generated report
 cat .claude/milhouse-feedback.md
 
 # If there are differences, pass to Ralph
 /ralph-loop "Read .claude/milhouse-feedback.md and fix all differences" --max-iterations 10
 ```
+
+**How it works:** The command captures a screenshot with Puppeteer, then Claude Code reads both the screenshot and reference image directly, analyzes them using its vision capabilities, and generates the feedback report.
 
 ## Commands
 
@@ -370,15 +373,12 @@ After corrections, output <promise>VISUAL_FIXED</promise>
 
 ### Environment Variables
 
-**Required:**
-```bash
-export ANTHROPIC_API_KEY=sk-ant-your-key
-```
-
-**Optional (for Figma integration):**
+**Optional (for Figma API integration only):**
 ```bash
 export FIGMA_ACCESS_TOKEN=figd_your-token
 ```
+
+**Note:** No Anthropic API key needed! Claude Code analyzes images using its built-in vision capabilities.
 
 ## Integration with Ralph Loop
 
@@ -495,14 +495,6 @@ done
 
 ## Troubleshooting
 
-### Error: "ANTHROPIC_API_KEY not set"
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-your-key
-```
-
-Add to your `~/.zshrc` or `~/.bashrc` for persistence.
-
 ### Error: "Screenshot failed"
 
 **Causes:**
@@ -612,7 +604,9 @@ Validate early and often:
 
 ## CI/CD Integration
 
-### GitHub Actions Example
+**Note:** CI/CD integration requires Claude Code to be available in your pipeline environment. For traditional CI/CD without Claude Code, consider using pixel-diff tools (pixelmatch, BackstopJS, etc.) instead.
+
+If you have Claude Code in your CI environment:
 
 ```yaml
 name: Visual Regression
@@ -641,13 +635,11 @@ jobs:
         run: sleep 5
 
       - name: Run Milhouse validation
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # This requires Claude Code CLI in CI environment
         run: |
-          node milhouse/scripts/compare-vision.js \
-            --url http://localhost:3000 \
-            --reference .claude/screenshots/golden/main.png \
-            --type screenshot
+          claude-code /milhouse:compare \
+            --current http://localhost:3000 \
+            --reference .claude/screenshots/golden/main.png
 
       - name: Upload report
         uses: actions/upload-artifact@v3

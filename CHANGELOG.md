@@ -5,6 +5,47 @@ All notable changes to the Milhouse plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-01-17
+
+### 🚀 Major Architecture Change
+
+**Migrated from external Claude Vision API to Claude Code's built-in vision capabilities**
+
+This is a significant architectural change that simplifies setup and removes external dependencies.
+
+### Changed
+- **Image analysis now runs directly in Claude Code** using the built-in Read tool
+- `/milhouse:check` command now delegates image analysis to Claude Code instead of external API
+- `/milhouse:compare` command now delegates image analysis to Claude Code instead of external API
+- Bash scripts now simply capture screenshots and prompt Claude Code to analyze
+- Removed external API calls from screenshot.js and compare-vision.js
+
+### Removed
+- **ANTHROPIC_API_KEY requirement** - No longer needed!
+- External API calls to Claude Vision API
+- Token-based API authentication
+- API cost concerns for image analysis
+
+### Added
+- Enhanced CLAUDE.md with detailed instructions for Claude on how to analyze images
+- Clear separation of commands: TERMINAL (npm install) vs CLAUDE CODE (all /milhouse:* commands)
+- Note in all documentation about Claude Code's built-in vision capabilities
+
+### Documentation
+- Updated README.md to remove API key setup instructions
+- Updated QUICKSTART.md to simplify installation (just `npm install`)
+- Updated CLAUDE.md with comprehensive analysis instructions for Claude
+- Updated SCREENSHOT_COMPARISON.md with correct workflow and CI/CD notes
+- Updated all command files (check.md, compare.md) with new execution model
+- Added clear "Command Locations Overview" in QUICKSTART.md
+
+### Benefits
+- **Simpler setup** - Just `npm install`, no API keys needed
+- **Better integration** - Analysis happens directly in Claude Code
+- **No external API costs** - Uses Claude Code's built-in capabilities
+- **Faster feedback loop** - Direct image analysis without external calls
+- **More reliable** - No network dependencies for image analysis
+
 ## [1.1.0] - 2025-01-16
 
 ### Added

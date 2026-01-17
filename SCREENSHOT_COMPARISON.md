@@ -118,11 +118,13 @@ Recommended structure:
 
 ```bash
 # ==== PHASE 1: ESTABLISH BASELINE ====
-# Capture golden screenshot of approved version
+# In TERMINAL: Start server
 npm run dev
+
+# In CLAUDE CODE: Capture golden screenshot of approved version
 /milhouse:check --url http://localhost:8000
 
-# Save as golden
+# In TERMINAL: Save as golden
 mkdir -p .claude/screenshots/golden
 cp .claude/milhouse-screenshot.png .claude/screenshots/golden/v1.0-home.png
 
@@ -131,32 +133,35 @@ cp .claude/milhouse-screenshot.png .claude/screenshots/golden/v1.0-home.png
 # ... edit files ...
 
 # ==== PHASE 3: VALIDATION ====
-# Compare with golden
-npm run dev
+# In CLAUDE CODE: Compare with golden
 /milhouse:compare \
   --current http://localhost:8000 \
   --reference .claude/screenshots/golden/v1.0-home.png
 
+# Claude Code will analyze both screenshots and generate feedback report
+
 # ==== PHASE 4A: IF UNINTENDED DIFFERENCES ====
-# Review feedback
+# In TERMINAL or editor: Review feedback
 cat .claude/milhouse-feedback.md
 
-# Fix with Ralph
+# In CLAUDE CODE: Fix with Ralph
 /ralph-loop "Read .claude/milhouse-feedback.md. There are unintended visual changes. Revert or fix to match reference." --max-iterations 5
 
-# Validate fixes
+# In CLAUDE CODE: Validate fixes
 /milhouse:compare \
   --current http://localhost:8000 \
   --reference .claude/screenshots/golden/v1.0-home.png
 
 # ==== PHASE 4B: IF CHANGES ARE INTENTIONAL ====
-# Update golden with new approved version
+# In TERMINAL: Update golden with new approved version
 cp .claude/milhouse-screenshot.png .claude/screenshots/golden/v1.1-home.png
 ```
 
 ## CI/CD Integration
 
-You can automate this in your pipeline:
+**Note:** CI/CD integration requires Claude Code to be available in your pipeline environment. For traditional CI/CD without Claude Code, consider using pixel-diff tools (pixelmatch, BackstopJS, etc.) instead.
+
+If you have Claude Code in your CI environment:
 
 ```yaml
 # .github/workflows/visual-regression.yml
@@ -175,13 +180,11 @@ jobs:
         run: npm run dev &
 
       - name: Compare with main branch
+        # This requires Claude Code CLI in CI environment
         run: |
-          git checkout main
-          npm run dev &
-          node milhouse/scripts/compare-vision.js \
-            --url http://localhost:3000 \
-            --reference .claude/screenshots/main.png \
-            --type screenshot
+          claude-code /milhouse:compare \
+            --current http://localhost:3000 \
+            --reference .claude/screenshots/main.png
 
       - name: Upload report
         uses: actions/upload-artifact@v3
@@ -219,7 +222,7 @@ jobs:
 A: Yes, any PNG/JPG works as reference.
 
 **Q: How do I handle dynamic content (current date, username)?**
-A: Claude Vision is instructed to ignore dynamic content differences.
+A: Claude Code is instructed to ignore dynamic content differences.
 
 **Q: Can I compare production vs staging?**
 A: Yes, use full URLs in `--current` and capture one as reference.
@@ -227,8 +230,8 @@ A: Yes, use full URLs in `--current` and capture one as reference.
 **Q: Does it work with SPAs that load dynamically?**
 A: Yes, use `waitTime` and `waitForSelector` in config to wait for rendering.
 
-**Q: How much does each comparison cost?**
-A: Each Claude Vision API call consumes tokens. Check Anthropic pricing.
+**Q: Do I need an API key?**
+A: No! Claude Code analyzes images using its built-in vision capabilities.
 
 ## Resources
 
@@ -239,8 +242,8 @@ A: Each Claude Vision API call consumes tokens. Check Anthropic pricing.
 
 ---
 
-**Version:** 1.1.0
-**Last updated:** 2025-01-16
+**Version:** 1.2.0
+**Last updated:** 2025-01-17
 
 **Part of the Lisa-Ralph-Milhouse trilogy**
 

@@ -14,30 +14,25 @@ arguments:
   - name: selector
     description: CSS selector to capture specific element (default: full page)
     required: false
-  - name: output
-    description: Output format - markdown, json, or both (default: markdown)
-    required: false
 ---
 
 # Milhouse Visual Check
 
-Ejecuta una comparación visual entre la implementación actual y el diseño de Figma.
+Compares your implementation against a Figma design reference using Claude Vision (built into Claude Code).
 
-## Proceso
+## Process
 
-1. Lee configuración de `.claude/milhouse.config.json` si existe
-2. Lanza Puppeteer y navega a la URL especificada
-3. Espera a que la página cargue completamente (networkidle0)
-4. Captura screenshot (full page o selector específico)
-5. Carga la imagen de referencia de Figma
-6. Envía ambas imágenes a Claude Vision API con el prompt de comparación
-7. Parsea la respuesta y genera el reporte de feedback
-8. Guarda el reporte en `.claude/milhouse-feedback.md`
+1. Read configuration from `.claude/milhouse.config.json` if exists
+2. Launch Puppeteer and navigate to specified URL
+3. Wait for page to load completely (networkidle0)
+4. Capture screenshot (full page or specific selector)
+5. **Claude Code analyzes both images directly**
+6. Generate detailed feedback report
 
-## Ejecución
+## Execution
 
 ```bash
-# Leer configuración si existe
+# Read config if exists
 CONFIG_FILE=".claude/milhouse.config.json"
 if [ -f "$CONFIG_FILE" ]; then
   DEFAULT_URL=$(jq -r '.url // "http://localhost:8000"' "$CONFIG_FILE" 2>/dev/null || echo "http://localhost:8000")
@@ -47,20 +42,166 @@ else
   DEFAULT_REF=".claude/figma-refs/design.png"
 fi
 
-# Ejecutar script de comparación
+FINAL_URL="${url:-$DEFAULT_URL}"
+FINAL_REF="${reference:-$DEFAULT_REF}"
+FINAL_VIEWPORT="${viewport:-1920x1080}"
+FINAL_SELECTOR="${selector:-}"
+
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-node "$SCRIPT_DIR/scripts/compare-vision.js" \
-  --url "${url:-$DEFAULT_URL}" \
-  --reference "${reference:-$DEFAULT_REF}" \
-  --viewport "${viewport:-1920x1080}" \
-  --selector "${selector:-}" \
-  --output "${output:-markdown}"
+
+# Capture screenshot
+echo "📸 Capturing screenshot from $FINAL_URL..."
+if [ -n "$FINAL_SELECTOR" ]; then
+  node "$SCRIPT_DIR/scripts/screenshot.js" \
+    --url "$FINAL_URL" \
+    --output ".claude/milhouse-screenshot.png" \
+    --viewport "$FINAL_VIEWPORT" \
+    --selector "$FINAL_SELECTOR"
+else
+  node "$SCRIPT_DIR/scripts/screenshot.js" \
+    --url "$FINAL_URL" \
+    --output ".claude/milhouse-screenshot.png" \
+    --viewport "$FINAL_VIEWPORT"
+fi
+
+if [ $? -ne 0 ]; then
+  echo "❌ Screenshot capture failed"
+  exit 1
+fi
+
+echo "✓ Screenshot captured: .claude/milhouse-screenshot.png"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔍 MILHOUSE VISUAL QA ANALYSIS"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Current implementation: .claude/milhouse-screenshot.png"
+echo "Figma reference: $FINAL_REF"
+echo ""
+echo "I will now analyze both images and generate a detailed visual QA report."
+echo ""
 ```
 
-## Output
+## Instructions for Claude
 
-Después de ejecutar, revisa `.claude/milhouse-feedback.md` para ver las diferencias encontradas.
+After the screenshot is captured, you should:
 
-Si el diseño coincide, el archivo indicará `STATUS: APPROVED`.
+1. **Read both images:**
+   - Current implementation: `.claude/milhouse-screenshot.png`
+   - Figma reference: Path specified in `$FINAL_REF`
 
-Si hay diferencias, contendrá una lista de correcciones necesarias que puedes pasar a Ralph.
+2. **Analyze meticulously:**
+   - Compare every visual aspect
+   - Identify ALL differences (spacing, colors, typography, sizes, alignment, borders, shadows)
+   - Be VERY SPECIFIC with values (exact px, hex colors)
+   - Ignore dynamic content differences (lorem ipsum text, placeholder images)
+
+3. **Generate structured report** and save to `.claude/milhouse-feedback.md`:
+
+```markdown
+# Milhouse Visual QA Report
+
+**Generated:** [timestamp]
+**Status:** APPROVED | DIFFERENCES_FOUND
+**Summary:** [one-line summary]
+
+---
+
+[If APPROVED:]
+## ✅ APPROVED
+
+The implementation matches the Figma design.
+
+### Verified elements:
+- ✓ [element 1]
+- ✓ [element 2]
+...
+
+[If DIFFERENCES_FOUND:]
+## ❌ DIFFERENCES FOUND
+
+Found [N] difference(s) requiring correction.
+
+### 🔴 Critical (N)
+
+**1. [Element Name]** (category)
+- **Issue:** [clear description]
+- **Current:** `[actual value]`
+- **Expected:** `[expected value from Figma]`
+- **CSS Property:** `[property]`
+- **Suggested Fix:**
+  ```css
+  [selector] {
+    [property]: [value];
+  }
+  ```
+
+### 🟠 Major (N)
+[same format]
+
+### 🟡 Minor (N)
+[same format]
+
+---
+
+## 📋 Summary for Ralph
+
+```
+Fix the following visual differences:
+
+- [Element]: [Description]. Change [property] from "[current]" to "[expected]"
+- [Element]: [Description]. Change [property] from "[current]" to "[expected]"
+...
+
+After corrections, output <promise>VISUAL_FIXED</promise>
+```
+
+### ✅ Correct elements:
+- [element 1]
+- [element 2]
+...
+```
+
+4. **Also save JSON data** to `.claude/milhouse-feedback.json`:
+
+```json
+{
+  "status": "APPROVED" | "DIFFERENCES_FOUND",
+  "summary": "...",
+  "differences": [
+    {
+      "element": "...",
+      "category": "spacing|color|typography|size|alignment|border|shadow|other",
+      "description": "...",
+      "current": "...",
+      "expected": "...",
+      "severity": "critical|major|minor",
+      "cssProperty": "...",
+      "suggestedFix": "..."
+    }
+  ],
+  "approvedElements": [...]
+}
+```
+
+5. **Display summary:**
+   - If APPROVED: "🎉 Visual QA PASSED! Implementation matches design."
+   - If differences: "⚠️ Found [N] differences. Review .claude/milhouse-feedback.md"
+
+## Categories for differences:
+
+- **spacing** - margins, paddings, gaps
+- **color** - background, text, border colors
+- **typography** - font-size, font-weight, font-family, line-height, letter-spacing
+- **size** - width, height, dimensions
+- **alignment** - text-align, justify-content, align-items
+- **border** - border-width, border-radius, border-style
+- **shadow** - box-shadow, text-shadow
+- **other** - any other visual difference
+
+## Severity levels:
+
+- **critical** - Obvious, user-facing differences that break design
+- **major** - Noticeable differences that affect UX
+- **minor** - Small differences that are barely noticeable
